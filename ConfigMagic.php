@@ -1,7 +1,7 @@
 <?php
 /* vim: set expandtab tabstop=4 shiftwidth=4: */
 /**
- * @package Config Magic
+ * @package ConfigMagic
  * @copyright Copyright (c) 2005 Alan Pinstein. All Rights Reserved.
  * @author Alan Pinstein <apinstein@mac.com>                        
  * 
