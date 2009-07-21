@@ -128,11 +128,15 @@ END;
         print $msg;
     }
 
+    protected function getConfigMagicConfigPath()
+    {
+        return $this->getConfigDirectory() . '/config.ini';
+    }
+
     protected function readConfig()
     {
-        $iniFile = $this->getConfigDirectory() . '/config.ini';
+        $iniFile = $this->getConfigMagicConfigPath();
         $iniFileData = parse_ini_file($iniFile, true);
-        print_r($iniFileData);
 
         // determine profiles
         if (!isset($iniFileData['templates'])) throw new Exception("No 'templates' section in ConfigMagic config!");
@@ -148,7 +152,6 @@ END;
                 $this->configs[$config]['configFile'] = $iniFileData['templates']["{$config}.configFile"];
             }
         }
-        print_r($this->configs);
     }
 
     public function writeConfigForProfile($profile)
@@ -157,10 +160,48 @@ END;
         if (!file_exists($profileFile)) throw new Exception("Could not load profile {$profileFile}.");
 
         foreach (array_keys($this->configs) as $config) {
+            $this->logMessage("\n{$config}\n");
+
             $configFileTemplate = $this->replaceTokens($this->configs[$config]['configFileTemplate'], $profile, $config);
             $configFile = $this->replaceTokens($this->configs[$config]['configFile'], $profile, $config);
 
-            $this->logMessage("Creating {$configFile} from template {$configFileTemplate}.\n");
+            $this->logMessage("{$config}: Creating {$configFile} from template {$configFileTemplate}.\n");
+
+            // coalesce data
+            $defaultData = parse_ini_file($this->getConfigMagicConfigPath());
+            $profileData = parse_ini_file($profileFile);
+            $coalescePath = array(
+                $defaultData,
+                $profileData
+            );
+            $coalescedData = array_merge($defaultData, $profileData);
+
+            // load template
+            if (!file_exists($configFileTemplate)) throw new Exception("{$config}: ConfigFileTemplate {$configFileTemplate} does not exist.");
+            $configFileTemplateString = file_get_contents($configFileTemplate);
+            if (!$configFileTemplateString) throw new Exception("{$config}: Unknown error reading configFileTemplate {$configFileTemplate}.");
+
+            // replace tokens in template
+            $replacements = array();
+            foreach ($coalescedData as $k => $v) {
+                // for each token, process with all replacements up-to-now as well
+                $replacements["##{$k}##"] = str_replace(array_keys($replacements), array_values($replacements), $v);
+            }
+            $configFileTemplateString = str_replace(array_keys($replacements), array_values($replacements), $configFileTemplateString);
+            // issue warnings for warnings for missing ##var.name##
+            $matches = array();
+            if (preg_match_all('/(##[A-z0-9-_\.]+##)/', $configFileTemplateString, $matches)) {
+                $uniqueMisses = array();
+                foreach ($matches[0] as $missed) {
+                    $uniqueMisses[$missed] = 1;
+                }
+                foreach (array_keys($uniqueMisses) as $missed) {
+                    $this->logMessage("{$config}: No subtitution found for: {$missed}\n");
+                }
+            }
+            // write out
+            $ok = file_put_contents($configFile, $configFileTemplateString);
+            if (!$ok) throw new Exception("{$config}: Error writing out config file {$configFile}.");
         }
     }
 
@@ -181,5 +222,12 @@ END;
     }
 }
 
-$c = new ConfigMagic();
-$c->writeConfigForProfile('dev');
+try {
+    $c = new ConfigMagic();
+    $c->writeConfigForProfile('dev');
+    print "Done!\n";
+    exit(0);
+} catch (Exception $e) {
+    print $e->getMessage() . "\n";
+    exit(1);
+}
