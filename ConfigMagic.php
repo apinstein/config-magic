@@ -102,8 +102,8 @@ class ConfigMagic
 ;   - <config>.configFileTemplate => path to the input template file
 ;   - <config>.configFile         => path to the write output config file to
 [templates]
-webapp.configFileTemplate = ##CONFIG_DIR##/##CONFIG##.conf
-webapp.configFile         = ##CONFIG_DIR##/##CONFIG##-##PROFILE##.conf
+example.configFileTemplate = ##CONFIG_DIR##/##CONFIG##.conf
+example.configFile         = ##CONFIG_DIR##/##CONFIG##-##PROFILE##.conf
 
 END;
             file_put_contents($configDir . '/config.ini', $cleanTPL);
