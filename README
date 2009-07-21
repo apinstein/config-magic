@@ -29,18 +29,21 @@ ConfigMagic comes with a command-line utility "cfg" that lets you quickly manage
 EXAMPLE
 
 # initialize ConfigMagic for this project.
-$ cfg -i
+cfg -i
 
 # set up an example config file
 echo "myProfile = ##PROFILE##" > config/templates/example.conf
 echo "myVar = ##my.var##" >> config/templates/example.conf
 
 # set up an empty profile
-$ echo "my.var = 10" > config/profiles/dev.ini 
+echo "my.var = 10" > config/profiles/dev.ini 
 
-$ cfg dev
+# build all config files for the "dev" profile
+cfg dev
 
-$ cat config/example.conf
+# check
+cat config/example.conf
+# output:
 myProfile = dev
 myVar = 10
 
