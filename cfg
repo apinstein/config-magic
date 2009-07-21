@@ -91,6 +91,7 @@ function usage()
 cfg usage:
   cfg [opts] profile
     -d --dir <ConfigDir> [default ./config]
+    -i --init Initialize ConfigDir
     -v --verbose Verbose messages
     -q --quiet Supress all message
     -h --help Show this help
