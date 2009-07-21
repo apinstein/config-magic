@@ -32,6 +32,9 @@ $shortopts  = "";
 $shortopts .= "d:"; // -d --dir <ConfigDir>
 $longopts[] = "dir";
 
+$shortopts .= "o:"; // -o --outputDir <OutputDir>
+$longopts[] = "outputDir";
+
 $shortopts .= "v";  // -v --verbose => verbose
 $longopts[] = "verbose";
 
@@ -64,6 +67,10 @@ if (isset($cliOpts['q']))
 if (isset($cliOpts['d']))
 {
     $opts[ConfigMagic::OPT_CONFIG_DIR] = $cliOpts['d'];
+}
+if (isset($cliOpts['o']))
+{
+    $opts[ConfigMagic::OPT_OUTPUT_DIR] = $cliOpts['o'];
 }
 
 if (count($argv) < 2)

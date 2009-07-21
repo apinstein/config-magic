@@ -65,8 +65,6 @@ b = ##a##-bar       # b = foo-bar
 
 The following additional variables are automatically defined:
 
-##CONFIG_DIR##      => the config dir
-##TEMPLATES_DIR##   => the config "templates" dir (always inside the config dir)
 ##CONFIG##          => the current config name
 ##PROFILE##         => the current profile name
 

@@ -40,13 +40,18 @@
 class ConfigMagic
 {
     const OPT_CONFIG_DIR                 = 'configDir';
+    const OPT_OUTPUT_DIR                 = 'outputDir';
     const OPT_VERBOSE                    = 'verbose';
     const OPT_QUIET                      = 'quiet';
 
     /**
-     * @var string The path to the directory where migrations are stored.
+     * @var string The path to the directory where config.ini, templates, and profiles are stored.
      */
     protected $configDir;
+    /**
+     * @var string The path to the directory where config files are output to. Defaults to {@link ConfigMagic::$configDir configDir}.
+     */
+    protected $outputDir;
 
     /**
      * @var array The ConfigMagic configuration.
@@ -67,12 +72,14 @@ class ConfigMagic
     {
         $opts = array_merge(array(
                                 ConfigMagic::OPT_CONFIG_DIR            => './config',
+                                ConfigMagic::OPT_OUTPUT_DIR            => NULL,
                                 ConfigMagic::OPT_VERBOSE               => false,
                                 ConfigMagic::OPT_QUIET                 => false,
                            ), $opts);
 
         // set up initial data
         $this->setConfigDirectory($opts[ConfigMagic::OPT_CONFIG_DIR]);
+        $this->setOutputDirectory($opts[ConfigMagic::OPT_OUTPUT_DIR]);
         $this->verbose = $opts[ConfigMagic::OPT_VERBOSE];
         $this->quiet = $opts[ConfigMagic::OPT_QUIET];
 
@@ -99,6 +106,7 @@ class ConfigMagic
 ; There are a handful of tokens that you can use in your values to use dynamic data:
 ; ##CONFIG_DIR##    => Absolute path to the config directory. You can then use relative paths to precisely control input/output location for your config files.
 ; ##TEMPLATES_DIR## => Absolute path to the templates directory. You can then use relative paths to precisely control input/output location for your config files.
+; ##OUTPUT_DIR##    => Absolute path to the output directory. You can then use relative paths to precisely control input/output location for your config files.
 ; ##PROFILE##       => The current "profile" name (ie dev/staging/production)
 ; ##CONFIG##        => The current "config" name (ie httpd.conf, sh.conf)
 ; For each config that ConfigMagic will handle, you need 2 entires under "templates":
@@ -106,7 +114,7 @@ class ConfigMagic
 ;   - <config>.configFile         => path to the write output config file to
 [templates]
 example.configFileTemplate = ##TEMPLATES_DIR##/##CONFIG##.conf
-example.configFile         = ##CONFIG_DIR##/##CONFIG##.conf
+example.configFile         = ##OUTPUT_DIR##/##CONFIG##.conf
 
 END;
             file_put_contents($configDir . '/config.ini', $cleanTPL);
@@ -122,6 +130,21 @@ END;
     public function getConfigDirectory()
     {
         return $this->configDir;
+    }
+
+    public function setOutputDirectory($d)
+    {
+        $this->outputDir = $d;
+        return $this;
+    }
+
+    public function getOutputDirectory()
+    {
+        if ($this->outputDir !== NULL)
+        {
+            return $this->outputDir;
+        }
+        return $this->getConfigDirectory();
     }
 
     public function logMessage($msg, $onlyIfVerbose = false)
@@ -162,6 +185,14 @@ END;
         $profileFile = $this->getConfigDirectory() . '/profiles/' . $profile . '.ini';
         if (!file_exists($profileFile)) throw new Exception("Could not load profile {$profile} from {$profileFile}.");
 
+        // make sure output dir exists
+        $outputDir = $this->getOutputDirectory();
+        if (!file_exists($outputDir))
+        {
+            mkdir($this->getOutputDirectory());
+            $this->logMessage("Output directory does not exist.\nCreating output directory at {$outputDir}.\n");
+        }
+
         foreach (array_keys($this->configs) as $config) {
             $this->logMessage("\n{$config}\n");
 
@@ -185,8 +216,6 @@ END;
 
             // replace tokens in template
             $replacements = array(
-                                '##CONFIG_DIR##' => $this->getConfigDirectory(),
-                                '##TEMPLATES_DIR##' => $this->getConfigDirectory() . '/templates',
                                 '##PROFILE##' => $profile,
                                 '##CONFIG##' => $config,
                             );
@@ -214,7 +243,7 @@ END;
             }
             // write out
             $ok = file_put_contents($configFile, $configFileTemplateString);
-            if (!$ok) throw new Exception("{$config}: Error writing out config file {$configFile}.");
+            if ($ok === false) throw new Exception("{$config}: Error writing out config file {$configFile}.");
         }
     }
 
@@ -222,12 +251,14 @@ END;
     {
         $input = str_replace(array(
                                 '##CONFIG_DIR##',
+                                '##OUTPUT_DIR##',
                                 '##TEMPLATES_DIR##',
                                 '##PROFILE##',
                                 '##CONFIG##',
                              ),
                              array(
                                 $this->getConfigDirectory(),
+                                $this->getOutputDirectory(),
                                 $this->getConfigDirectory() . '/templates',
                                 $profile,
                                 $config,
