@@ -164,6 +164,7 @@ END;
 
             $configFileTemplate = $this->replaceTokens($this->configs[$config]['configFileTemplate'], $profile, $config);
             $configFile = $this->replaceTokens($this->configs[$config]['configFile'], $profile, $config);
+            if ($configFile == $configFileTemplate) throw new Exception("{$config}: configFile and configFileTemplate cannot be the same. Both are set to: {$configFile}.");
 
             $this->logMessage("{$config}: Creating {$configFile} from template {$configFileTemplate}.\n");
 
