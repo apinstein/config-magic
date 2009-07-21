@@ -32,15 +32,15 @@ EXAMPLE
 $ cfg -i
 
 # set up an example config file
-echo "myProfile = ##PROFILE##" > config/example.conf
-echo "myVar = ##my.var##" >> config/example.conf
+echo "myProfile = ##PROFILE##" > config/templates/example.conf
+echo "myVar = ##my.var##" >> config/templates/example.conf
 
 # set up an empty profile
-$ echo "my.var = 10" > config/dev.ini 
+$ echo "my.var = 10" > config/profiles/dev.ini 
 
 $ cfg dev
 
-$ cat config/example-dev.conf
+$ cat config/example.conf
 myProfile = dev
 myVar = 10
 
@@ -62,9 +62,10 @@ b = ##a##-bar       # b = foo-bar
 
 The following additional variables are automatically defined:
 
-##CONFIG_DIR##  => the config dir
-##CONFIG##      => the current config name
-##PROFILE##     => the current profile name
+##CONFIG_DIR##      => the config dir
+##TEMPLATES_DIR##   => the config "templates" dir (always inside the config dir)
+##CONFIG##          => the current config name
+##PROFILE##         => the current profile name
 
 Any variable substitution in the template file that isn't defined in any ini file will be skipped and a warning will print out.
 

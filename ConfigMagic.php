@@ -92,18 +92,21 @@ class ConfigMagic
             $this->logMessage("Config directory does not exist.\nInitializing new config directory at {$configDir}.\n");
 
             mkdir($configDir, 0777, true);
+            mkdir($configDir . '/templates', 0777, true);
+            mkdir($configDir . '/profiles', 0777, true);
             $cleanTPL = <<<END
 ; The "templates" directive is a special directive that lists all config templates managed by ConfigMagic
 ; There are a handful of tokens that you can use in your values to use dynamic data:
 ; ##CONFIG_DIR##    => Absolute path to the config directory. You can then use relative paths to precisely control input/output location for your config files.
-; ##PROFILE##        => The current "profile" name (ie dev/staging/production)
+; ##TEMPLATES_DIR## => Absolute path to the templates directory. You can then use relative paths to precisely control input/output location for your config files.
+; ##PROFILE##       => The current "profile" name (ie dev/staging/production)
 ; ##CONFIG##        => The current "config" name (ie httpd.conf, sh.conf)
 ; For each config that ConfigMagic will handle, you need 2 entires under "templates":
 ;   - <config>.configFileTemplate => path to the input template file
 ;   - <config>.configFile         => path to the write output config file to
 [templates]
-example.configFileTemplate = ##CONFIG_DIR##/##CONFIG##.conf
-example.configFile         = ##CONFIG_DIR##/##CONFIG##-##PROFILE##.conf
+example.configFileTemplate = ##TEMPLATES_DIR##/##CONFIG##.conf
+example.configFile         = ##CONFIG_DIR##/##CONFIG##.conf
 
 END;
             file_put_contents($configDir . '/config.ini', $cleanTPL);
@@ -156,7 +159,7 @@ END;
 
     public function writeConfigForProfile($profile)
     {
-        $profileFile = $this->getConfigDirectory() . '/' . $profile . '.ini';
+        $profileFile = $this->getConfigDirectory() . '/profiles/' . $profile . '.ini';
         if (!file_exists($profileFile)) throw new Exception("Could not load profile {$profile} from {$profileFile}.");
 
         foreach (array_keys($this->configs) as $config) {
@@ -183,6 +186,7 @@ END;
             // replace tokens in template
             $replacements = array(
                                 '##CONFIG_DIR##' => $this->getConfigDirectory(),
+                                '##TEMPLATES_DIR##' => $this->getConfigDirectory() . '/templates',
                                 '##PROFILE##' => $profile,
                                 '##CONFIG##' => $config,
                             );
@@ -218,11 +222,13 @@ END;
     {
         $input = str_replace(array(
                                 '##CONFIG_DIR##',
+                                '##TEMPLATES_DIR##',
                                 '##PROFILE##',
                                 '##CONFIG##',
                              ),
                              array(
                                 $this->getConfigDirectory(),
+                                $this->getConfigDirectory() . '/templates',
                                 $profile,
                                 $config,
                              ),
