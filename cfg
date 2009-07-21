@@ -1,0 +1,96 @@
+#!/usr/bin/php
+<?php
+/* vim: set expandtab tabstop=4 shiftwidth=4 syntax=php: */
+/**
+ * Copyright (c) 2009 Alan Pinstein <apinstein@mac.com>
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ */
+
+require_once('config_magic.php');
+
+// get options
+$longopts = array();
+$shortopts  = "";
+
+$shortopts .= "d:"; // -d --dir <ConfigDir>
+$longopts[] = "dir";
+
+$shortopts .= "v";  // -v --verbose => verbose
+$longopts[] = "verbose";
+
+$shortopts .= "q";  // -q --quiet => supress all logging
+$longopts[] = "quiet";
+
+$shortopts .= "h";  // -h --help => print help
+$longopts[] = "help";
+
+$cliOpts = @getopt($shortopts, $longopts);
+
+if (isset($cliOpts['h']))
+{
+    usage();
+}
+
+// create ConfigMagic
+$opts = array();
+if (isset($cliOpts['v']))
+{
+    $opts[ConfigMagic::OPT_VERBOSE] = true;
+}
+if (isset($cliOpts['q']))
+{
+    $opts[ConfigMagic::OPT_QUIET] = true;
+}
+if (isset($cliOpts['d']))
+{
+    $opts[ConfigMagic::OPT_CONFIG_DIR] = $cliOpts['d'];
+}
+
+if (count($argv) < 2)
+{
+    usage();
+}
+$profile = array_pop($argv);
+
+try {
+    $m = new ConfigMagic($opts);
+    $m->writeConfigForProfile($profile);
+    print "Done!\n";
+    exit(0);
+} catch (Exception $e) {
+    print "Error: " . $e->getMessage() . "\n";
+    exit(1);
+}
+
+function usage()
+{
+    print <<<END
+cfg usage:
+  cfg [opts] profile
+    -d --dir <ConfigDir> [default ./config]
+    -v --verbose Verbose messages
+    -q --quiet Supress all message
+    -h --help Show this help
+
+NOTE: long options are not yet implemented.
+
+END;
+    exit(0);
+}

@@ -157,7 +157,7 @@ END;
     public function writeConfigForProfile($profile)
     {
         $profileFile = $this->getConfigDirectory() . '/' . $profile . '.ini';
-        if (!file_exists($profileFile)) throw new Exception("Could not load profile {$profileFile}.");
+        if (!file_exists($profileFile)) throw new Exception("Could not load profile {$profile} from {$profileFile}.");
 
         foreach (array_keys($this->configs) as $config) {
             $this->logMessage("\n{$config}\n");
@@ -220,14 +220,4 @@ END;
                              $input);
         return $input;
     }
-}
-
-try {
-    $c = new ConfigMagic();
-    $c->writeConfigForProfile('dev');
-    print "Done!\n";
-    exit(0);
-} catch (Exception $e) {
-    print $e->getMessage() . "\n";
-    exit(1);
 }
