@@ -27,6 +27,16 @@
  *
  */
 
+/**
+ * ConfigMagic combines a set of configFileTemplates with a set of configFileData for a given profile and produces a set of output config files that have the configFileData applied to the configFileTemplates.
+ *
+ * NOMENCLATURE:
+ * profile              => The name of the "profile" for a set of config files. Example: dev, staging, production
+ * config               => The "conceptual" idea of a conf file; a conveient alias for that file. Example: "httpd.conf"
+ * profileData          => An ini file containing a set of name-value pairs to be for a given profile that will be applied to the config file templates. Example: dev.ini
+ * configFileTemplate   => The template file for the corresponding configFile. Example: http.conf
+ * configFile           => A completed config file, ready for use. Example: httpd-production.conf
+ */
 class ConfigMagic
 {
     const OPT_CONFIG_DIR                 = 'configDir';
@@ -37,6 +47,16 @@ class ConfigMagic
      * @var string The path to the directory where migrations are stored.
      */
     protected $configDir;
+
+    /**
+     * @var array The ConfigMagic configuration.
+     */
+    protected $config = array();
+
+    /**
+     * @var array A list of all of the configs specified in the template file.
+     */
+    protected $configs = array();
 
     /**
      * Create a migrator instance.
@@ -76,10 +96,14 @@ class ConfigMagic
 ; The "templates" directive is a special directive that lists all config templates managed by ConfigMagic
 ; There are a handful of tokens that you can use in your values to use dynamic data:
 ; ##CONFIG_DIR##    => Absolute path to the config directory. You can then use relative paths to precisely control input/output location for your config files.
-; ##CONFIG##        => The current "config" name (ie dev/staging/production)
+; ##PROFILE##        => The current "profile" name (ie dev/staging/production)
+; ##CONFIG##        => The current "config" name (ie httpd.conf, sh.conf)
+; For each config that ConfigMagic will handle, you need 2 entires under "templates":
+;   - <config>.configFileTemplate => path to the input template file
+;   - <config>.configFile         => path to the write output config file to
 [templates]
-template.webapp.input = ##CONFIG_DIR##/webapp.conf
-template.webapp.output = ##CONFIG_DIR##/webapp-##CONFIG##.conf
+webapp.configFileTemplate = ##CONFIG_DIR##/##CONFIG##.conf
+webapp.configFile         = ##CONFIG_DIR##/##CONFIG##-##PROFILE##.conf
 
 END;
             file_put_contents($configDir . '/config.ini', $cleanTPL);
@@ -107,9 +131,55 @@ END;
     protected function readConfig()
     {
         $iniFile = $this->getConfigDirectory() . '/config.ini';
-        $config = parse_ini_file($iniFile);
-        print_r($config);
+        $iniFileData = parse_ini_file($iniFile, true);
+        print_r($iniFileData);
+
+        // determine profiles
+        if (!isset($iniFileData['templates'])) throw new Exception("No 'templates' section in ConfigMagic config!");
+
+        $this->configs = array();
+        foreach (array_keys($iniFileData['templates']) as $templateKey)
+        {
+            $matches = array();
+            if (preg_match('/^([^\.]+)\.configFileTemplate$/', $templateKey, $matches))
+            {
+                $config = $matches[1];
+                $this->configs[$config]['configFileTemplate'] = $iniFileData['templates']["{$config}.configFileTemplate"];
+                $this->configs[$config]['configFile'] = $iniFileData['templates']["{$config}.configFile"];
+            }
+        }
+        print_r($this->configs);
+    }
+
+    public function writeConfigForProfile($profile)
+    {
+        $profileFile = $this->getConfigDirectory() . '/' . $profile . '.ini';
+        if (!file_exists($profileFile)) throw new Exception("Could not load profile {$profileFile}.");
+
+        foreach (array_keys($this->configs) as $config) {
+            $configFileTemplate = $this->replaceTokens($this->configs[$config]['configFileTemplate'], $profile, $config);
+            $configFile = $this->replaceTokens($this->configs[$config]['configFile'], $profile, $config);
+
+            $this->logMessage("Creating {$configFile} from template {$configFileTemplate}.\n");
+        }
+    }
+
+    protected function replaceTokens($input, $profile, $config)
+    {
+        $input = str_replace(array(
+                                '##CONFIG_DIR##',
+                                '##PROFILE##',
+                                '##CONFIG##',
+                             ),
+                             array(
+                                $this->getConfigDirectory(),
+                                $profile,
+                                $config,
+                             ),
+                             $input);
+        return $input;
     }
 }
 
 $c = new ConfigMagic();
+$c->writeConfigForProfile('dev');
