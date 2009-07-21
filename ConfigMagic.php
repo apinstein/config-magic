@@ -179,8 +179,6 @@ END;
 
             // load template
             if (!file_exists($configFileTemplate)) throw new Exception("{$config}: ConfigFileTemplate {$configFileTemplate} does not exist.");
-            $configFileTemplateString = file_get_contents($configFileTemplate);
-            if (!$configFileTemplateString) throw new Exception("{$config}: Unknown error reading configFileTemplate {$configFileTemplate}.");
 
             // replace tokens in template
             $replacements = array(
@@ -192,6 +190,12 @@ END;
                 // for each token, process with all replacements up-to-now as well
                 $replacements["##{$k}##"] = str_replace(array_keys($replacements), array_values($replacements), $v);
             }
+            // process template as PHP
+            ob_start();
+            $profileData = $replacements;
+            include $configFileTemplate;
+            $configFileTemplateString = ob_get_contents();
+            ob_end_clean();
             $configFileTemplateString = str_replace(array_keys($replacements), array_values($replacements), $configFileTemplateString);
             // issue warnings for warnings for missing ##var.name##
             $matches = array();
