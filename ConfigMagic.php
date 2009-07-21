@@ -182,7 +182,11 @@ END;
             if (!$configFileTemplateString) throw new Exception("{$config}: Unknown error reading configFileTemplate {$configFileTemplate}.");
 
             // replace tokens in template
-            $replacements = array();
+            $replacements = array(
+                                '##CONFIG_DIR##' => $this->getConfigDirectory(),
+                                '##PROFILE##' => $profile,
+                                '##CONFIG##' => $config,
+                            );
             foreach ($coalescedData as $k => $v) {
                 // for each token, process with all replacements up-to-now as well
                 $replacements["##{$k}##"] = str_replace(array_keys($replacements), array_values($replacements), $v);

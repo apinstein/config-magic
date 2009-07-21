@@ -38,6 +38,9 @@ $longopts[] = "verbose";
 $shortopts .= "q";  // -q --quiet => supress all logging
 $longopts[] = "quiet";
 
+$shortopts .= "i";  // -i --init => initialize
+$longopts[] = "init";
+
 $shortopts .= "h";  // -h --help => print help
 $longopts[] = "help";
 
@@ -71,8 +74,11 @@ $profile = array_pop($argv);
 
 try {
     $m = new ConfigMagic($opts);
-    $m->writeConfigForProfile($profile);
-    print "Done!\n";
+    if (!isset($cliOpts['i']))
+    {
+        $m->writeConfigForProfile($profile);
+    }
+    print "Done.\n";
     exit(0);
 } catch (Exception $e) {
     print "Error: " . $e->getMessage() . "\n";
