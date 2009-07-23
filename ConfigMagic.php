@@ -116,6 +116,8 @@ class ConfigMagic
 example.configFileTemplate = ##TEMPLATES_DIR##/##CONFIG##.conf
 example.configFile         = ##OUTPUT_DIR##/##CONFIG##.conf
 
+[data]
+; your default data here. any settings here will be overridden by values in the profile's ini file on a setting-by-setting basis
 END;
             file_put_contents($configDir . '/config.ini', $cleanTPL);
         }
