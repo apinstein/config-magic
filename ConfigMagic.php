@@ -182,6 +182,12 @@ END;
         }
     }
 
+    /**
+     * Write out all config files for the given profile.
+     *
+     * @param string Profile name.
+     * @throws object Exception
+     */
     public function writeConfigForProfile($profile)
     {
         $profileFile = $this->getConfigDirectory() . '/profiles/' . $profile . '.ini';
@@ -195,6 +201,7 @@ END;
             $this->logMessage("Output directory does not exist.\nCreating output directory at {$outputDir}.\n");
         }
 
+        $substitutionErrors = false;
         foreach (array_keys($this->configs) as $config) {
             $this->logMessage("\n{$config}\n");
 
@@ -240,12 +247,17 @@ END;
                     $uniqueMisses[$missed] = 1;
                 }
                 foreach (array_keys($uniqueMisses) as $missed) {
+                    $substitutionErrors = true;
                     $this->logMessage("{$config}: No subtitution found for: {$missed}\n");
                 }
             }
             // write out
             $ok = file_put_contents($configFile, $configFileTemplateString);
             if ($ok === false) throw new Exception("{$config}: Error writing out config file {$configFile}.");
+        }
+        if ($substitutionErrors)
+        {
+            throw new Exception("Some variables could not be substitued. This could cause dangerous side-effects in your config files.");
         }
     }
 
