@@ -1,1 +1,3 @@
 config/*
+config_magic-*.tgz
+package.xml
