@@ -254,6 +254,8 @@ END;
             // write out
             $ok = file_put_contents($configFile, $configFileTemplateString);
             if ($ok === false) throw new Exception("{$config}: Error writing out config file {$configFile}.");
+            // make read-only to minimize risk of editing the generated conf vs the template
+            chmod($configFile, 0444);
         }
         if ($substitutionErrors)
         {
