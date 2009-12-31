@@ -252,6 +252,10 @@ END;
                 }
             }
             // write out
+            if (file_exists($configFile))
+            {
+                unlink($configFile);
+            }
             $ok = file_put_contents($configFile, $configFileTemplateString);
             if ($ok === false) throw new Exception("{$config}: Error writing out config file {$configFile}.");
             // make read-only to minimize risk of editing the generated conf vs the template
