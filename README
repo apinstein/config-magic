@@ -2,6 +2,12 @@ ConfigMagic
 
 A simple organizational tool to help you manage config files for your web app.
 
+INSTALLATION
+
+pear install apinstein.pearfarm.org/config_magic
+
+HOW IT WORKS
+
 A typical web app has 1 or more config files. For instance, your app might have the following files:
 httpd.conf      (apache config)
 webapp.conf     (framework config)
