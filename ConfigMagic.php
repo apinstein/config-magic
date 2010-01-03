@@ -125,7 +125,7 @@ END;
 
     public function setConfigDirectory($d)
     {
-        $this->configDir = $d;
+        $this->configDir = realpath($d);
         return $this;
     }
 
@@ -136,6 +136,10 @@ END;
 
     public function setOutputDirectory($d)
     {
+        if ($d !== NULL)
+        {
+            $d = realpath($d);
+        }
         $this->outputDir = $d;
         return $this;
     }
@@ -224,10 +228,7 @@ END;
             if (!file_exists($configFileTemplate)) throw new Exception("{$config}: ConfigFileTemplate {$configFileTemplate} does not exist.");
 
             // replace tokens in template
-            $replacements = array(
-                                '##PROFILE##' => $profile,
-                                '##CONFIG##' => $config,
-                            );
+            $replacements = $this->getReplacementTokens($profile, $config);
             foreach ($coalescedData as $k => $v) {
                 // for each token, process with all replacements up-to-now as well
                 $replacements["##{$k}##"] = str_replace(array_keys($replacements), array_values($replacements), $v);
@@ -267,23 +268,19 @@ END;
         }
     }
 
+    protected function getReplacementTokens($profile, $config)
+    {
+        return array(
+                '##CONFIG_DIR##' => $this->getConfigDirectory(),
+                '##OUTPUT_DIR##' => $this->getOutputDirectory(),
+                '##TEMPLATES_DIR##' => $this->getConfigDirectory() . '/templates',
+                '##PROFILE##' => $profile,
+                '##CONFIG##' => $config,
+                );
+    }
     protected function replaceTokens($input, $profile, $config)
     {
-        $input = str_replace(array(
-                                '##CONFIG_DIR##',
-                                '##OUTPUT_DIR##',
-                                '##TEMPLATES_DIR##',
-                                '##PROFILE##',
-                                '##CONFIG##',
-                             ),
-                             array(
-                                $this->getConfigDirectory(),
-                                $this->getOutputDirectory(),
-                                $this->getConfigDirectory() . '/templates',
-                                $profile,
-                                $config,
-                             ),
-                             $input);
-        return $input;
+        $replacements = $this->getReplacementTokens($profile, $config);
+        return str_replace(array_keys($replacements), array_values($replacements), $input);
     }
 }
