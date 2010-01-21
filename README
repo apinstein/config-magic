@@ -97,6 +97,18 @@ NOTE: if you are actually generating a php file, you will need to escape php tag
 # short php tags
 <<? ?>?
 
+DYNAMIC VARIABLES
+
+In some cases you may want to programmatically munge the profile data directly rather than in the template files via dynamic templates.
+
+A good example of this is to call realpath() on a path at the variable level so you don't have to remember to do this in each template.
+
+This can be done with this simple syntax:
+
+project.dir = "<?php realpath('##OUTPUT_DIR##/..') ?>"
+
+The php processing will occur *after* the variable substitution has processed.
+
 CONCLUSION
 
 Getting started with ConfigMagic is very easy and provides a solid organizational framework to manage your config files. I hope you enjoy it.

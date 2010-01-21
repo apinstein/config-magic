@@ -5,7 +5,7 @@ $spec = Pearfarm_PackageSpec::create(array(Pearfarm_PackageSpec::OPT_BASEDIR => 
             ->setChannel('apinstein.pearfarm.org')
             ->setSummary('A simple tool for managing multiple config files on multiple deployment scenarios.')
             ->setDescription('See http://github.com/apinstein/config-magic')
-            ->setReleaseVersion('1.0.1')
+            ->setReleaseVersion('1.0.2')
             ->setReleaseStability('stable')
             ->setApiVersion('1.0.0')
             ->setApiStability('stable')

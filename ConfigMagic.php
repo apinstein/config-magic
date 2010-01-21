@@ -233,6 +233,14 @@ END;
                 // for each token, process with all replacements up-to-now as well
                 $replacements["##{$k}##"] = str_replace(array_keys($replacements), array_values($replacements), $v);
             }
+            // process php tag magic
+            foreach ($replacements as $k => $v) {
+                if (preg_match('/<\?php (.*)\?'.'>/', $v, $matches))    // goofy syntax there to prevent syntax coloring problems in rest of file due to close    php tag
+                {
+                    $replacements[$k] = eval( "return {$matches[1]};" );
+                }
+            }
+
             // process template as PHP
             ob_start();
             $profileData = $replacements;
