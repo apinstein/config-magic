@@ -77,30 +77,33 @@ class ConfigMagic
                                 ConfigMagic::OPT_QUIET                 => false,
                            ), $opts);
 
+        $this->logMessage("ConfigMagic - The PHP Configuration Organizer.\n");
+        $this->initializeConfigDir($opts[ConfigMagic::OPT_CONFIG_DIR]);
+
         // set up initial data
         $this->setConfigDirectory($opts[ConfigMagic::OPT_CONFIG_DIR]);
         $this->setOutputDirectory($opts[ConfigMagic::OPT_OUTPUT_DIR]);
         $this->verbose = $opts[ConfigMagic::OPT_VERBOSE];
         $this->quiet = $opts[ConfigMagic::OPT_QUIET];
 
-        // initialize migration state
-        $this->logMessage("ConfigMagic - The PHP Configuration Organizer.\n");
-
-        $this->initializeConfigDir();
         $this->readConfig();
     }
 
-    protected function initializeConfigDir()
+    protected function initializeConfigDir($configDir)
     {
-        // initialize migrations dir
-        $configDir = $this->getConfigDirectory();
+        // initialize directory
         if (!file_exists($configDir))
         {
-            $this->logMessage("Config directory does not exist.\nInitializing new config directory at {$configDir}.\n");
+            $this->logMessage("Config directory does not exist.\nInitializing new config directory at {$configDir}:\n");
 
-            mkdir($configDir, 0777, true);
-            mkdir($configDir . '/templates', 0777, true);
-            mkdir($configDir . '/profiles', 0777, true);
+            foreach (array($configDir, $configDir . '/templates', $configDir . '/profiles') as $d) {
+                $this->logMessage("mkdir {$d}\n");
+                if (!file_exists($d))
+                {
+                    $ok = mkdir($d, 0777, true);
+                    if (!$ok) throw new Exception("Failed to create config directory: {$d}");
+                }
+            }
             $cleanTPL = <<<END
 ; The "templates" directive is a special directive that lists all config templates managed by ConfigMagic
 ; There are a handful of tokens that you can use in your values to use dynamic data:
@@ -119,13 +122,16 @@ example.configFile         = ##OUTPUT_DIR##/##CONFIG##.conf
 [data]
 ; your default data here. any settings here will be overridden by values in the profile's ini file on a setting-by-setting basis
 END;
+            // ' fix crap syntax coloring
             file_put_contents($configDir . '/config.ini', $cleanTPL);
         }
     }
 
     public function setConfigDirectory($d)
     {
-        $this->configDir = realpath($d);
+        $realpath = realpath($d);
+        if ($realpath === false) throw new Exception("realpath({$d}) failed.");
+        $this->configDir = $realpath;
         return $this;
     }
 
@@ -138,7 +144,10 @@ END;
     {
         if ($d !== NULL)
         {
-            $d = realpath($d);
+            $realpath = realpath($d);
+            if ($realpath === false) throw new Exception("realpath({$d}) failed.");
+
+            $d = $realpath;
         }
         $this->outputDir = $d;
         return $this;
