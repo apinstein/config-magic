@@ -244,10 +244,15 @@ END;
             }
             // process php tag magic
             foreach ($replacements as $k => $v) {
-                if (preg_match('/<\?php (.*)\?'.'>/', $v, $matches))    // goofy syntax there to prevent syntax coloring problems in rest of file due to close    php tag
+                if (is_string($v))
                 {
-                    $replacements[$k] = eval( "return {$matches[1]};" );
+                    $replacements[$k] = $this->handlePhpEvalReplacement($v);
                 }
+                else if (is_array($v))
+                {
+                    $replacements[$k] = array_map(array($this, 'handlePhpEvalReplacement'), $v);
+                }
+                else throw new Exception("Unexpected type encountered at {$k} => " . gettype($v));
             }
 
             // process template as PHP
@@ -283,6 +288,21 @@ END;
         {
             throw new Exception("Some variables could not be substitued. This could cause dangerous side-effects in your config files.");
         }
+    }
+
+    /**
+     * Parses the input string for a "<?php ... ?>" section and evals as needed.
+     *
+     * @param string Input
+     * @return string Parsed/processed input string. If no php code is found, it will return the exact input string.
+     */
+    private function handlePhpEvalReplacement($input)
+    {
+        if (preg_match('/<\?php (.*)\?'.'>/', $input, $matches))    // goofy syntax there to prevent syntax coloring problems in rest of file due to close    php tag
+        {
+            return eval( "return {$matches[1]};" );
+        }
+        return $input;
     }
 
     protected function getReplacementTokens($profile, $config)
