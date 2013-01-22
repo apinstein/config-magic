@@ -1,0 +1,19 @@
+{
+    "name": "apinstein/config_magic",
+    "type": "library",
+    "description": "Configuration management system for arbitrary ",
+    "keywords": ["config"],
+    "homepage": "http://github.com/apinstein/config-magic",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Alan Pinstein",
+            "email": "apinstein@mac.com",
+            "role": "Developer"
+        }
+    ],
+    "require": {
+        "php": ">=5.2.0"
+    },
+    "bin": ["cfg"]
+}
