@@ -308,11 +308,12 @@ END;
     protected function getReplacementTokens($profile, $config)
     {
         return array(
-                '##CONFIG_DIR##' => $this->getConfigDirectory(),
-                '##OUTPUT_DIR##' => $this->getOutputDirectory(),
+                '##CONFIG_DIR##'    => $this->getConfigDirectory(),
+                '##OUTPUT_DIR##'    => $this->getOutputDirectory(),
                 '##TEMPLATES_DIR##' => $this->getConfigDirectory() . '/templates',
-                '##PROFILE##' => $profile,
-                '##CONFIG##' => $config,
+                '##PROFILE##'       => $profile,
+                '##CONFIG##'        => $config,
+                '##HOME##'          => getenv('HOME'),
                 );
     }
     protected function replaceTokens($input, $profile, $config)
