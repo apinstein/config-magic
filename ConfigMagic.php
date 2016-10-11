@@ -64,6 +64,11 @@ class ConfigMagic
     protected $configs = array();
 
     /**
+     * @var bool
+     */
+    protected $quiet = false;
+
+    /**
      * Create a migrator instance.
      *
      * @param array Options Hash: set any of the ConfigMagic::OPT_* options.
