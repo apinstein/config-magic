@@ -78,6 +78,8 @@ myVar = 10
 ```
 
 VARIABLE SUBSTITUION
+--------------------
+
 Variables in the template files take the form of:
 
 `##my.var##`
@@ -118,10 +120,10 @@ All variables available in normal variable substition (in form of ##varname##) a
 
 NOTE: if you are actually generating a php file, you will need to escape php tags so that they are not seen as a "PHP Start Tag":
 
-# long php tags
+long php tags
 `<<?php ?>?php`
 
-# short php tags
+short php tags
 `<<? ?>?`
 
 DYNAMIC VARIABLES
