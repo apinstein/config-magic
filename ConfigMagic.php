@@ -66,6 +66,11 @@ class ConfigMagic
     /**
      * @var bool
      */
+    protected $verbose = false;
+    
+    /**
+     * @var bool
+     */
     protected $quiet = false;
 
     /**
